@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>auth</title>
+</head>
+<body>
+    <div id="loginPanel">
+        <form action="authorize">
+            <label>username</label>
+            <input type="text" name="username" placeholder="your user name">
+            <label>password</label>
+            <input type="password" name="password" placeholder="your password">
+            <button type="submit">login</button>
+        </form>
+        <div th:if="${error}">
+            <span th:text="${error.description}"></span>
+        </div>
+    </div>
+
+    <div id="authPanel">
+        <div>
+            <label>client_id:</label>
+            <label th:text="${session.client_id}"> - </label>
+        </div>
+        <div>
+            <label>scope:</label>
+            <label th:text="${session.scope}"> - </label>
+        </div>
+        <div>
+            <label>redirect_uri:</label>
+            <label th:text="${session.redirect_uri}"> - </label>
+        </div>
+
+        <div th:if="${session.user}">
+            <label>username:</label>
+            <span th:text="${session.user.username}" id="username"></span>
+        </div>
+
+        <form action="code">
+            <input hidden th:value="${session.state}" name="state">
+            <button type="submit">授权</button>
+        </form>
+    </div>
+
+    <script>
+        var username = document.getElementById("username");
+        if(username && username.textContent) {
+            loginPanel.style.display = "none";
+        } else {
+            authPanel.style.display = "none";
+        }
+    </script>
+</body>
+</html>

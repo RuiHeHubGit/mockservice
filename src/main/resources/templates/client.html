@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>client</title>
+</head>
+<body>
+    <a href="/">back</a>
+    <form action="/oauth2/register/client" method="post">
+        <label>Client Id</label>
+        <input type="text" name="clientId">
+        <label>Client Secret</label>
+        <input type="text" name="clientSecret">
+        <label>Redirect URI</label>
+        <input type="text" name="redirectUri">
+        <label>Scope</label>
+        <select type="text" name="scope">
+            <option value="read">read</option>
+            <option value="write">write</option>
+            <option value="*">*</option>
+        </select>
+        <button type="submit">register</button>
+    </form>
+
+    <div th:if="${error}">
+        <span th:text="${error.description}"></span>
+    </div>
+
+    <table>
+        <caption>client list</caption>
+        <thead>
+            <th>client id</th>
+            <th>client secret</th>
+            <th>redirect url</th>
+            <th>scope</th>
+        </thead>
+        <tbody>
+            <tr th:each="client : ${clients}">
+                <td th:text="${client.clientId}"></td>
+                <td th:text="${client.clientSecret}"></td>
+                <td th:text="${client.redirectUri}"></td>
+                <td th:text="${client.scope}"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

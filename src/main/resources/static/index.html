@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Mock Service</title>
+    <style>
+        tr,td {
+            padding: 8px;
+        }
+
+        input[type=text] {
+            width: 180px;
+        }
+
+        textarea {
+            width: 380px;
+            height: 56px;
+        }
+
+        caption {
+            margin-top: 10px;
+            margin-left: 10px;
+            font-weight: 700;
+        }
+
+        #template {
+            display: none;
+        }
+
+        #topBar {
+            position: fixed;
+            left: 20px;
+        }
+
+        #apiList {
+            position: fixed;
+            left: 10px;
+            right: 10px;
+            top: 35px;
+            bottom: 20px;
+            border: 2px dashed #aa999999;
+            border-radius: 3px;
+            padding-bottom: 10px;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        #apiList table {
+            width: calc(100% - 4px);
+            margin-left: 2px;
+            border-right:1px solid #eee;
+            border-bottom:1px solid #eee;
+        }
+
+        #apiList caption {
+            text-align: left;
+        }
+
+        .panel-title {
+            margin: 5px;
+            font-weight: 700;
+        }
+
+        #apiList th, #apiList td {
+            text-align: left;
+            border-left:1px solid #eee;
+            border-top:1px solid #eee;
+            padding: 3px;
+        }
+
+        #apiList tr:hover {
+            background: #ade;
+            cursor: pointer;
+        }
+
+        #apiList tr th:first-child {
+            width: 26px;
+        }
+
+        #APIEditPanel {
+            position: fixed;
+            z-index: 99999;
+            width: 640px;
+            left: 50%;
+            margin-left: -320px;
+            top: 30px;
+            bottom: 30px;
+            border: 2px dashed #aa999999;
+            box-shadow: 1px 1px 6px rgba(0, 0, 0, .6);
+            background-color: rgba(200, 200, 200, .9);
+            border-radius: 3px;
+            background-color: #eee;
+            display: none;
+        }
+
+        #APIEditPanel table {
+            width: 100%;
+        }
+
+        #APIEditPanel th {
+            text-align: right;
+        }
+
+        #APIEditPanelBk {
+            -webkit-filter: blur(1px); /* Chrome, Safari, Opera */
+            filter: blur(1px);
+        }
+
+        #buttonGroup {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 100%;
+        }
+
+        #buttonGroup .left-btn {
+            position: absolute;
+            top: 2px;
+            right: 80px;
+        }
+
+        #buttonGroup .right-btn {
+            position: absolute;
+            top: 2px;
+            right: 150px;
+        }
+
+        .close-btn {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            text-align: center;
+            line-height: 23px;
+            border-radius: 50%;
+            background-color: #fff;
+            cursor: pointer;
+            font-weight: 900;
+            color: #f00;
+            overflow: hidden;
+            transform: rotate(45deg);
+            font-size: 20px;
+        }
+
+        #buttonGroup .close-btn {
+            position: absolute;
+            right: 8px;
+            top: 5px;
+        }
+
+        .close-btn:after {
+            content: "+";
+            margin-left: -1px;
+        }
+
+        .close-btn:hover {
+            background-color: #aaa;
+        }
+
+        #formPanel {
+            width: 100%;
+            height: calc(100% - 30px);
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .item-btn {
+            position: relative;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 18px;
+            border-radius: 50%;
+            background-color: #ccc;
+            cursor: pointer;
+            font-weight: 900;
+            color: #445566;
+            overflow: hidden;
+            margin-left: 5px;
+            top: 5px;
+        }
+
+        .item-btn:hover {
+            background-color: #aaa;
+        }
+
+        .add-item-btn:after {
+            content: "+";
+        }
+
+        .remove-item-btn:after {
+            content: "-";
+        }
+
+        #topBtnGroup {
+            position: fixed;
+            top: 37px;
+            right: 18px;
+        }
+
+        #topBtnGroup div {
+            margin-right: 10px;
+        }
+
+        .baseBtn {
+            display: inline-block;
+            border-radius: 3px;
+            padding: 5px 8px;
+            color: #555;
+            cursor: pointer;
+            background-color: #c5c5d0;
+            opacity: 0.8;
+        }
+
+        .baseBtn:hover {
+            opacity: 1;
+        }
+
+        .deleteBtn {
+            background-color: #ef8585;
+            margin: 5px;
+        }
+
+        .updateBtn {
+            background-color: #ead910;
+            margin: 5px;
+        }
+
+        .testBtn {
+            background-color: #b2f1f1;
+            margin: 5px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="topBar">
+    <a href="/oauth2/client">oauth2</a>
+    <a href="/oauth2/logout">logout</a>
+</div>
+
+<div id="APIEditPanel">
+    <div class="panel-title">API Editor</div>
+    <div id="buttonGroup">
+        <div type="div" id="submitBtn" onclick="submitForm('apiForm', this.getAttribute('data'))" class="baseBtn right-btn">submit</div>
+        <div type="reset" onclick="resetForm('apiForm')" class="baseBtn left-btn">reset</div>
+        <div class="close-btn" id="closeAddPanelBtn" onclick="showAPIEditPanel(false)"></div>
+    </div>
+    <div id="formPanel">
+        <div id="template">
+            <table>
+                <tr class="header-item">
+                    <th>header</th>
+                    <td>
+                        <input name="headers">
+                        <div class="item-btn remove-item-btn" onclick="removeItem(this)"></div>
+                    </td>
+                </tr>
+
+                <tr class="param-item">
+                    <th>param</th>
+                    <td>
+                        <input name="params">
+                        <select name="paramTypes">
+                            <option value="string" selected>string</option>
+                            <option value="number">number</option>
+                            <option value="bool">bool</option>
+                            <option value="date">date</option>
+                        </select>
+                        <div class="item-btn remove-item-btn" onclick="removeItem(this)"></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <form id="apiForm">
+            <table id="fromTable">
+                <tr>
+                    <th>name</th>
+                    <td><input name="name"></td>
+                </tr>
+                <tr>
+                    <th>pattern</th>
+                    <td><input name="pattern"></td>
+                    </th>
+                </tr>
+                <th>method</th>
+                <td>
+                    <input name="method" type="radio" value="GET" checked id="mGET">
+                    <label for="mGET">GET</label>
+                    <input name="method" type="radio" value="POST" id="mPOST">
+                    <label for="mPOST">POST</label>
+                    <input name="method" type="radio" value="PUT" id="mPUT">
+                    <label for="mPUT">PUT</label>
+                    <input name="method" type="radio" value="DELETE" id="mDELETE">
+                    <label for="mDELETE">DELETE</label>
+                </td>
+                </tr>
+
+                <tr>
+                    <th>params</th>
+                    <td>
+                        <div id="addParam" class="item-btn add-item-btn" onclick="addItem('param-item', this)"></div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>headers</th>
+                    <td>
+                        <div id="addHeader" class="item-btn add-item-btn" onclick="addItem('header-item', this)"></div>
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <th>bodyRule</th>
+                    <td><textarea name="bodyRule" placeholder='{"a": "string,notNull", "b": {"c": "number"}, "d": "string,p=[a-zA-Z]+,maxLen=10"}    explanation: - dataType[string, long, double, float, integer, boolean, short, date]  - string constraints[minLen=number, maxLen=number, p=reg, notBlack, notEmpty]'></textarea></td>
+                </tr>
+
+                <tr>
+                    <th>consumes</th>
+                    <td>
+                        <table>
+                            <tr>
+                                <td>
+                                    <input name="consumes" type="checkbox" value="application/json" id="cJson">
+                                    <label for="cJson">application/json</label>
+                                </td>
+                                <td>
+                                    <input name="consumes" type="checkbox" value="text/html" id="cHtml">
+                                    <label for="cHtml">text/html</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input name="consumes" type="checkbox" value="application/xml" id="cXml">
+                                    <label for="cXml">aplication/xml</label>
+                                </td>
+                                <td>
+                                    <input name="consumes" type="checkbox" value="application/x-www-form-urlencoded" id="cText">
+                                    <label for="cText">application/x-www-form-urlencoded</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <th>produces</th>
+                    <td>
+                        <table>
+                            <tr>
+                                <td>
+                                    <input name="produces" type="checkbox" value="application/json" id="pJson">
+                                    <label for="pJson">application/json</label>
+                                </td>
+                                <td>
+                                    <input name="produces" type="checkbox" value="text/html" id="pHtml">
+                                    <label for="pHtml">text/html</label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input name="produces" type="checkbox" value="application/xml" id="pXml">
+                                    <label for="pXml">aplication/xml</label>
+                                </td>
+                                <td>
+                                    <input name="produces" type="checkbox" value="application/x-www-form-urlencoded" id="pText">
+                                    <label for="pText">application/x-www-form-urlencoded</label>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>latency</th>
+                    <td><input name="latency" type="number"></td>
+                </tr>
+
+                <tr>
+                    <th>response</th>
+                    <td><textarea name="response" placeholder="<script>your script //global: reqHeaders,reqParams,reqBody</script> or text"></textarea></td>
+                </tr>
+
+                <tr>
+                    <th>description</th>
+                    <td><textarea name="description"></textarea></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+
+<div id="apiList">
+    <div id="topBtnGroup">
+        <div id = "addAPIBtn" class="baseBtn" onclick="showAPIEditPanel(true)">add</div>
+        <div id = "deleteAPIs" class="baseBtn" onclick="deleteAllSelectAPI()">delete</div>
+    </div>
+
+    <table border="0" cellspacing="0" cellpadding="0">
+        <caption>APIs</caption>
+        <thead>
+        <tr>
+            <th><input type="checkbox" onchange="selectAllAPI(this.checked)" id="selectAll"></th>
+            <th>name</th>
+            <th>pattern</th>
+            <th>method</th>
+            <th>params</th>
+            <th>headers</th>
+            <th>bodyRule</th>
+            <th>latency</th>
+            <th>description</th>
+            <th>operation</th>
+        </tr>
+        </thead>
+        <tbody id="apis">
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+  function httpRequest(url, data, method, headers, successCallback, failedCallback) {
+    xmlhttp = null;
+    if (window.XMLHttpRequest) {// code for IE7, Firefox, Opera, etc.
+      xmlhttp = new XMLHttpRequest();
+    } else if (window.ActiveXObject) {// code for IE6, IE5
+      xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    if (xmlhttp != null) {
+      xmlhttp.onreadystatechange = requestStateChange.bind(this, successCallback, failedCallback);
+      xmlhttp.open(method || "GET", url, true);
+      if (headers) {
+        Object.entries(headers).forEach(entry => {
+          xmlhttp.setRequestHeader(entry[0], entry[1]);
+        });
+      }
+      try {
+          if (typeof(data) != "string") {
+            data = xmlhttp.send(JSON.stringify(data));
+          }
+      } catch(e) {
+        console.log(e);
+      }
+    } else {
+      alert("Your browser does not support XMLHTTP.");
+    }
+  }
+
+  function requestStateChange(successCallback, failedCallback) {
+    console.log(xmlhttp.readyState, xmlhttp.status, xmlhttp.statusText)
+    if (xmlhttp.readyState === 4) {
+      if (xmlhttp.status === 200) {
+        if(successCallback instanceof Function) {
+            let data = JSON.parse(xmlhttp.responseText);
+            successCallback(data);
+        }
+      } else {
+        let data = null;
+        if(xmlhttp.responseText) {
+            try {
+                data = JSON.parse(xmlhttp.responseText);
+            } catch(e) {
+                console.log(e);
+            }
+
+            if(failedCallback instanceof Function) {
+                failedCallback(data);
+            } else {
+                defaultRequestErrorHandler(data || xmlhttp);
+            }
+        } else {
+            defaultRequestErrorHandler(xmlhttp);
+        }
+      }
+    } else if(xmlhttp.status > 400) {
+        defaultRequestErrorHandler(xmlhttp);
+    }
+  }
+
+  function defaultRequestErrorHandler(data) {
+    if(data) {
+        if(data.errorCode) {
+            alert(data.errorCode + "\n" + data.description);
+        } else if(data.status > 0) {
+            alert(data.status + " " + data.statusText);
+        } else {
+            alert("connection refused");
+        }
+    }
+  }
+
+  function showAPIs(data) {
+        let table = document.querySelector("#apis");
+        let html = ""
+        data.forEach(api => {
+          html += "<tr>" +
+            "<td><input type='checkbox' onchange='onAPISelectChange(this.checked)' class='api-select' data='" +api.id+ "'></td>" +
+            "<td>" + (api.name || "-") + "</td>" +
+            "<td>" + (api.pattern || "-") + "</td>" +
+            "<td>" + (api.method || "-") + "</td>" +
+            "<td>" + (api.params || "-") + "</td>" +
+            "<td>" + (api.headers || "-") + "</td>" +
+			"<td>" + (api.bodyRule || "-") + "</td>" +
+            "<td>" + (api.latency ? api.latency + "ms" : "-") + "</td>" +
+            "<td>" + (api.description || "-") + "</td><td>" +
+            "<div class='baseBtn updateBtn' onclick='prepareUpdateAPI("+ api.id +", this)'>update</div>" +
+            "<div class='baseBtn deleteBtn' onclick='deleteAPI("+ api.id +", this)'>delete</div>" +
+            "<div class='baseBtn testBtn' onclick='testAPI("+ api.id +")'>test</div>" +
+            "</td></tr>";
+        });
+
+        table.innerHTML = html;
+  }
+
+  function resetForm(formId) {
+    let form = document.getElementById(formId);
+    if (form) {
+        form.reset();
+
+        let params = fromTable.getElementsByClassName("param-item");
+        while (params.length > 0) {
+            params[0].parentNode.removeChild(params[0]);
+        }
+
+        let headers = fromTable.getElementsByClassName("header-item");
+        while (headers.length > 0) {
+            headers[0].parentNode.removeChild(headers[0]);
+        }
+    }
+  }
+
+  function submitForm(formId, id) {
+    let form = document.getElementById(formId);
+    let data = serializationForm(form, {"params":[], "paramTypes": [], "headers": [], "consumes": [], "produces": []});
+	id = id || "";
+	if(id) {
+		data.id = id;
+	}
+	let method = id ? "PUT" : "POST";
+    httpRequest("api", data, method, {"Content-type": "application/json"}, function() {
+        refreshAPIList();
+        onAPISelectChange(false);
+    });
+    return false;
+  }
+
+  function serializationForm(form, arr = {}) {
+    for (var i = 0; i < form.elements.length; i++) {
+      var field = form.elements[i];
+      switch (field.type) {
+        case undefined:
+        case 'button':
+        case 'file':
+        case 'reset':
+        case 'submit':
+          break;
+        case 'radio':
+        case 'checkbox':
+          if (!field.checked) {
+            break;
+          }
+        default:
+          if (!field.value) {
+            break;
+          }
+          if (arr[field.name]) {
+            if(arr[field.name] instanceof Array) {
+              arr[field.name].push(field.value);
+            } else {
+              arr[field.name] = [arr[field.name], field.value];
+            }
+          } else {
+            arr[field.name] = field.value;
+          }
+      }
+    }
+    return arr
+  }
+
+  function insertAfter(newElement, targetElement){
+     let parent = targetElement.parentNode;
+     if (parent.lastChild == targetElement) {
+          parent.appendChild(newElement);
+     } else {
+         parent.insertBefore(newElement, targetElement.nextSibling);
+     }
+}
+
+  function addItem(className, target) {
+    let tl = template.getElementsByClassName(className)[0];
+    if(tl) {
+        while(target && target.tagName != "TR") {
+            target = target.parentElement;
+        }
+        insertAfter(tl.cloneNode(true), target)
+    }
+  }
+
+  function removeItem(item) {
+    if(item) {
+        while(item && item.tagName != "TR") {
+            item = item.parentElement;
+        }
+
+        if(item && item.tagName === "TR") {
+            item.parentNode.removeChild(item);
+        }
+    }
+  }
+
+  function showAPIEditPanel(show) {
+    let APIEditPanel = document.querySelector("#APIEditPanel");
+    let buttonGroup = document.querySelector("#topBtnGroup");
+    if(show) {
+		submitBtn.removeAttribute("data")
+        APIEditPanel.style.display = "block";
+        topBtnGroup.style.display = "none";
+    } else {
+        APIEditPanel.style.display = "none";
+        topBtnGroup.style.display = "block";
+    }
+  }
+
+  function refreshAPIList() {
+    httpRequest("apis", null, "get", null, function(data) {
+        showAPIs(data);
+    });
+  }
+
+  function deleteAPI(id, item) {
+    if(!confirm("Are you sure you want to delete this API?")) {
+        return;
+    }
+
+    httpRequest("api/" + id, null, "delete", null, function(data) {
+        removeItem(item);
+    });
+  }
+
+  function fillAPIEditor(data) {
+	  resetForm("apiForm");
+	  if(data.params && data.params.length > 0) {
+		  for(let i = 0; i < data.params.length; i++) {
+			  addParam.click();
+		  }
+	  }
+	  if(data.headers && data.headers.length > 0) {
+		for(let i = 0; i < data.headers.length; i++) {
+	  		addHeader.click();
+	  	}
+	  }
+	  let form = document.getElementById("apiForm");
+	  let inputs = form.elements;
+	  let len = inputs.length;
+	  for(let i=0; i<len; i++) {
+		  let input = inputs[i];
+		  let name = input.name;
+		  let value = data[name];
+		  if(!name) {
+			  continue;
+		  }
+		  switch (input.type) {
+		    case undefined:
+		    case 'button':
+		    case 'file':
+		    case 'reset':
+		    case 'submit':
+				break;
+		    case 'radio':
+				input.checked = input.value.toUpperCase() === value;
+				break;
+		    case 'checkbox':
+				input.checked = value.indexOf(input.value) >= 0;
+				break;
+		    default:
+				if(value instanceof Array && value.length > 0) {
+					input.value = value.shift();
+				} else {
+					input.value = value;
+				}
+		  }
+	  }
+  }
+
+  function prepareUpdateAPI(id) {
+    httpRequest("api/" + id, null, "get", null, function(data) {
+        showAPIEditPanel(true);
+		fillAPIEditor(data);
+		submitBtn.setAttribute("data", id);
+    });
+  }
+
+  function selectAllAPI(checked) {
+    let checkboxes = document.getElementsByClassName("api-select");
+    let length = checkboxes.length;
+    for(let i=0; i<length; i++) {
+        checkboxes[i].checked = checked;
+    }
+  }
+
+  function onAPISelectChange(checked) {
+    if(!checked) {
+        document.getElementById("selectAll").checked = false;
+    } else {
+        let checkboxes = document.getElementsByClassName("api-select");
+        let length = checkboxes.length;
+        for(let i=0; i<length; i++) {
+            if(!checkboxes[i].checked) {
+                return;
+            }
+        }
+        document.getElementById("selectAll").checked = true;
+    }
+  }
+
+  function deleteAllSelectAPI() {
+    let checkboxes = document.getElementsByClassName("api-select");
+    let length = checkboxes.length;
+    let ids = [];
+    for(let i=0; i<length; i++) {
+        let cb = checkboxes[i];
+        if(cb.checked) {
+            ids.push(cb.getAttribute("data"));
+        }
+    }
+
+    if(ids.length > 0) {
+        if(!confirm("Are you sure you want to delete the selected " + ids.length + " API" + (ids.length > 1 ? "s":""))) {
+            return;
+        }
+
+        httpRequest("apis", ids, "delete", {"Content-type": "application/json"}, function(data) {
+            refreshAPIList();
+        }, function(data) {
+            refreshAPIList();
+        });
+    }
+  }
+
+  refreshAPIList();
+</script>
+</body>
+</html>
